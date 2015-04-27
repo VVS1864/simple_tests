@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # -*- coding: utf-8; -*-
 from Tkinter import*
 import ttk
@@ -27,7 +28,7 @@ questions = {
         }],
     }
 questions_100 = questions.copy()
-i = 1
+i = 2
 while i<100:
     for x in questions.keys():
         i += 1
@@ -110,7 +111,7 @@ class test_gui:
         self.frame_right = Frame(self.master)
         self.frame_right.pack(side=TOP, fill=BOTH, expand=1)
         
-        self.listb = Listbox(self.frame_left, height = 30, width = 3)
+        self.listb = Listbox(self.frame_left, height = len(questions), width = 3)
         self.listb.pack(side="left")
         self.listb.bind("<<ListboxSelect>>", self.change_q)
 
@@ -120,17 +121,19 @@ class test_gui:
         self.listb.config(yscrollcommand=scrollbar.set)
         scrollbar.config(command=self.listb.yview)
 
-        self.frame_q = Frame(self.frame_right, bg = 'green')
+        self.frame_q = Frame(self.frame_right)
         self.frame_q.pack(side=TOP, fill=BOTH, expand=1)
 
         self.frame_apply = Frame(self.frame_right)
         self.frame_apply.pack(side=TOP, fill=BOTH, expand=1)
 
-        self.button_next = Button(self.frame_apply, text = u'Следующий вопрос', bg = 'lightblue', command = self.next_q)
-        self.button_next.pack(side='top') 
-
         self.button_apply = Button(self.frame_apply, text = u'Закончить тестирование', bg = 'lightblue', command = self.apply_test)
-        self.button_apply.pack(side='bottom')        
+        self.button_apply.pack(side='bottom') 
+
+        self.button_next = Button(self.frame_apply, text = u'Следующий вопрос', bg = 'lightblue', command = self.next_q)
+        self.button_next.pack(side='bottom')
+
+               
         
         self.frames = []
         for i, j in enumerate(questions.keys()):
@@ -182,11 +185,16 @@ class test_gui:
         self.current_frame.pack_forget()
         self.current_frame = current_frame
         self.current_frame.pack(side='top', fill=BOTH, expand=1)
-        self.listb.selection_clear(0, 30)
+        self.listb.selection_clear(0, len(questions))
         self.listb.selection_set(q_num)
     
 
     def apply_test(self):
+        yes_no = tkMessageBox.askyesno(u'Закончить тестирование?', u'Вы уверены что хотите закончить тестирование? Изменить результат будет невозможно.')
+        if yes_no == True:
+            self.report()
+            
+    def report(self):
         bads = 0
         result = {}
         
@@ -210,15 +218,58 @@ class test_gui:
                     right = False
                     bads += 1
                 result[quest_ID].append([var_cb, ist_answer, answer, e])
-            result[quest_ID].append(right)
-                   
-        for  r in result.keys():
-            print r
-            for  e in result[r]:
-                print e
-    
-        print u'Всего = %s, Неправильно = %s, Правильно %s из %s' %(len(result), bads, len(result)-bads, len(result))
+            #result[quest_ID].append(right)
+        prof = ''
+        for s in self.profile:
+            prof += s[0]+': '
+            prof += s[1]+'\n'            
             
+        
+        r = u'Правильно %s из %s' %(len(result)-bads, len(result))
+        report = prof + '\n' + r + u'''
+
+Детальный отчет:
+№ вопроса | Даны ответы | Правильные ответы'''
+        
+           
+        for num in result.keys():
+            report += '\n%s'%num
+
+            answers = ''
+            ist_answers = ''
+            for  e in result[num]:
+                if e[2]:
+                    answers += '%s,'%e[0]
+                if e[1]:
+                    ist_answers += '%s,'%e[0]
+            report += '      |  %s  |  %s'%(answers, ist_answers)
+        print report
+            
+                    
+        
+        
+    
+        #print u'Всего = %s, Неправильно = %s, Правильно %s из %s' %(len(result), bads, len(result)-bads, len(result))
+        #r = u'Правильно %s из %s' %(len(result)-bads, len(result))
+        result_dialog = tkMessageBox.showinfo(u'Результат теста', r)
+        '''
+        if result_dialog == True:
+            opt = {}
+            
+            opt['defaultextension'] = '.svg'
+            opt['filetypes'] = [
+                ('text files', '.txt'),
+                ('all files', '.*')
+                ]
+            
+            opt['initialdir'] = appPath
+            opt['initialfile'] = self.profile[u'Фамилия']+'_'+self.profile[u'Имя']
+            opt['parent'] = self.master
+            opt['title'] = u'Сохранить результат'
+            f = tkFileDialog.asksaveasfile(mode='w', **opt)
+            if f:
+        '''
+                
             
         
         
